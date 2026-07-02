@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Rounded square - neutral dark -->
+  <rect width="512" height="512" rx="96" fill="#18181b"/>
+  
+  <!-- House - subtle white -->
+  <path d="M256 100L110 230v152c0 16 13 29 29 29h234c16 0 29-13 29-29V230L256 100z" fill="#fafafa"/>
+  
+  <!-- Chat dots - coral/salmon accent -->
+  <circle cx="218" cy="330" r="14" fill="#f97316"/>
+  <circle cx="256" cy="330" r="14" fill="#f97316"/>
+  <circle cx="294" cy="330" r="14" fill="#f97316"/>
+  
+  <!-- Roof line -->
+  <path d="M140 240L256 130L372 240" stroke="#f97316" stroke-width="6" stroke-linecap="round" fill="none"/>
+</svg>

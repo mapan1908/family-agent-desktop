@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拾忆 — 告别微信文件助手</title>
+<meta name="description" content="本地运行的 AI 知识助手。文件永久保存在本地，待办随时查询，WiFi 密码不再忘。多人共享，支持 DeepSeek / Qwen / OpenAI。">
+<meta property="og:title" content="拾忆 — 告别微信文件助手">
+<meta property="og:description" content="文件永久在本地 · 多人共享 · 聊天查询一切">
+<meta property="og:type" content="website">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50:'#fef7ee',100:'#fdecd3',200:'#f9d5a5',300:'#f5b76d',400:'#ef9233',500:'#ec7a12',600:'#d46008',700:'#b04809',800:'#8c390e',900:'#74310f' },
+      },
+      fontFamily: { sans: ['"Inter"','"Noto Sans SC"','system-ui','sans-serif'] },
+    }
+  }
+}
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter','Noto Sans SC',system-ui,sans-serif; }
+.fade-up { opacity:0; transform:translateY(24px); transition: all 0.7s cubic-bezier(.16,1,.3,1); }
+.fade-up.visible { opacity:1; transform:translateY(0); }
+.glow { box-shadow: 0 0 60px rgba(239,146,51,0.12); }
+.hero-gradient { background: linear-gradient(135deg, #fef7ee 0%, #f0fdf4 50%, #eff6ff 100%); }
+.card-hover { transition: all 0.3s ease; }
+.card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+.bubble-user { background: #f0f0f0; border-radius: 12px 0 12px 12px; }
+.bubble-agent { background: #fff; border-radius: 0 12px 12px 12px; }
+.section-divider { height:1px; background:linear-gradient(90deg,transparent,#e5e7eb,transparent); }
+.pain-line { text-decoration: line-through; text-decoration-color: #d1d5db; text-decoration-thickness: 3px; }
+.tech-tag { display:inline-flex; align-items:center; gap:4px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:2px 8px; font-size:11px; color:#6b7280; font-family:monospace; }
+</style>
+</head>
+<body class="bg-white text-gray-900 antialiased">
+
+<!-- NAV -->
+<nav class="fixed top-0 w-full bg-white/80 backdrop-blur-lg border-b border-gray-100 z-50">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-2.5 font-bold text-lg">
+      <span class="w-8 h-8 rounded-lg bg-brand-500 text-white flex items-center justify-center text-sm">✨</span>
+      <span>拾忆</span>
+    </a>
+    <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+      <a href="#features" class="hover:text-brand-600 transition">特性</a>
+      <a href="#local" class="hover:text-brand-600 transition">本地化</a>
+      <a href="#scenarios" class="hover:text-brand-600 transition">场景</a>
+      <a href="#quickstart" class="hover:text-brand-600 transition">上手</a>
+      <a href="#pricing" class="hover:text-brand-600 transition">定价</a>
+      <a href="#faq" class="hover:text-brand-600 transition">FAQ</a>
+    </div>
+    <a href="#download" class="bg-brand-500 text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-brand-600 transition">下载</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero" class="hero-gradient pt-32 pb-24 px-6">
+  <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+    <div class="fade-up">
+      <div class="inline-flex items-center gap-2 bg-white/70 backdrop-blur border border-gray-200 rounded-full px-4 py-1.5 text-sm text-gray-600 mb-6">
+        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+        v0.1 公测中 · 完全免费
+      </div>
+      <h1 class="text-5xl md:text-6xl font-black leading-tight tracking-tight mb-6">
+        告别
+        <span class="pain-line text-gray-300">微信文件助手</span><br>
+        <span class="bg-gradient-to-r from-brand-500 to-emerald-500 bg-clip-text text-transparent">文件永久在本地</span>
+      </h1>
+      <p class="text-xl text-gray-600 leading-relaxed mb-6 max-w-lg">
+        一台电脑装上它，就是你家的<strong>私有 AI 服务器</strong>。<br>
+        文件永久保存 · 待办随时查询 · WiFi 密码不再忘
+      </p>
+      <div class="flex flex-wrap gap-2 mb-8">
+        <span class="tech-tag">📦 Tauri 2</span>
+        <span class="tech-tag">💾 SQLite 本地数据库</span>
+        <span class="tech-tag">🔍 Tesseract.js 本地 OCR</span>
+        <span class="tech-tag">🤖 DeepSeek / Qwen / OpenAI</span>
+        <span class="tech-tag">🔒 数据不离开你的电脑</span>
+      </div>
+      <div class="flex flex-wrap gap-3" id="download">
+        <a href="#" class="inline-flex items-center gap-2 bg-gray-900 text-white font-semibold px-6 py-3 rounded-xl hover:bg-gray-800 transition text-sm">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          macOS
+        </a>
+        <a href="#" class="inline-flex items-center gap-2 bg-gray-900 text-white font-semibold px-6 py-3 rounded-xl hover:bg-gray-800 transition text-sm">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+          Windows
+        </a>
+        <a href="#" class="inline-flex items-center gap-2 border border-gray-300 bg-white text-gray-700 font-semibold px-6 py-3 rounded-xl hover:border-gray-400 transition text-sm">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+      <p class="mt-4 text-xs text-gray-400">macOS (Apple Silicon / Intel) · Windows 10/11 · 无需注册</p>
+    </div>
+
+    <!-- Hero chat mockup -->
+    <div class="fade-up relative">
+      <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-w-md mx-auto glow">
+        <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+          <div class="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center text-lg">✨</div>
+          <div>
+            <div class="font-semibold text-sm">拾忆</div>
+            <div class="text-xs text-green-500 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>在线</div>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div class="flex gap-2 items-start">
+            <div class="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center text-xs flex-shrink-0">A</div>
+            <div class="bubble-user px-3.5 py-2 text-sm max-w-[220px]">去年的租房合同还在吗？</div>
+          </div>
+          <div class="flex gap-2 items-start flex-row-reverse">
+            <div class="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-xs flex-shrink-0">✨</div>
+            <div class="bubble-agent px-3.5 py-2 text-sm max-w-[240px] shadow-sm border border-gray-100">
+              找到了 📄<br>
+              <strong>2025租房合同.pdf</strong><br>
+              <span class="text-xs text-gray-400">永久保存在本地，不会过期</span>
+            </div>
+          </div>
+          <div class="flex gap-2 items-start">
+            <div class="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-xs flex-shrink-0">B</div>
+            <div class="bubble-user px-3.5 py-2 text-sm max-w-[220px]">WiFi 密码是多少？</div>
+          </div>
+          <div class="flex gap-2 items-start flex-row-reverse">
+            <div class="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-xs flex-shrink-0">✨</div>
+            <div class="bubble-agent px-3.5 py-2 text-sm max-w-[240px] shadow-sm border border-gray-100">
+              📶 <strong>Home-5G</strong><br>
+              🔑 <code class="text-xs bg-gray-100 px-1 rounded">Fam2026!abc</code>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="absolute -top-6 -right-6 w-24 h-24 bg-brand-100 rounded-full opacity-40 -z-10"></div>
+      <div class="absolute -bottom-4 -left-4 w-16 h-16 bg-amber-100 rounded-full opacity-40 -z-10"></div>
+    </div>
+  </div>
+</section>
+
+<!-- PAIN POINT BANNER -->
+<section class="py-12 px-6 bg-gray-50 border-y border-gray-100">
+  <div class="max-w-4xl mx-auto text-center fade-up">
+    <p class="text-lg text-gray-500 leading-relaxed">
+      微信文件助手 <span class="line-through text-gray-300">7 天过期</span>　·　手机存储 <span class="line-through text-gray-300">越用越满</span>　·　找文件 <span class="line-through text-gray-300">翻聊天记录</span>
+    </p>
+    <p class="text-xl font-bold text-brand-600 mt-3">文件存在自己电脑上，一辈子都在。</p>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="py-24 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16 fade-up">
+      <p class="text-brand-600 font-semibold text-sm tracking-wide uppercase mb-3">核心特性</p>
+      <h2 class="text-3xl md:text-4xl font-extrabold mb-4">不只是聊天——它真的能帮你管事</h2>
+      <p class="text-gray-500 max-w-2xl mx-auto">一个跑在你电脑上的 AI，索引文件、记住琐事、回答问题。<br>家人或同事都能用，数据不离开这台机器。</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-6">
+
+      <div class="card-hover bg-white border border-gray-200 rounded-2xl p-7 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-2xl mb-4">📂</div>
+        <h3 class="text-lg font-bold mb-2">文件永久保存，随时可查</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">
+          告别微信文件助手的过期烦恼。<strong>文件存在你自己的电脑上，永远不会过期。</strong><br>
+          发票、证件、合同、作业照片——问它，它帮你找。<br>
+          <span class="text-xs text-gray-400 mt-2 inline-block">🔍 Tesseract.js 本地 OCR · 自然语言搜索 · 永不过期</span>
+        </p>
+      </div>
+
+      <div class="card-hover bg-white border border-gray-200 rounded-2xl p-7 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-2xl mb-4">👥</div>
+        <h3 class="text-lg font-bold mb-2">多人共享</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">
+          家人、室友、小团队——添加成员后各自绑定账号，<strong>共享同一个知识库</strong>。<br>
+          <span class="text-xs text-gray-400 mt-2 inline-block">👤 家长 · 成员 · 孩子 三种角色，权限分明</span>
+        </p>
+      </div>
+
+      <div class="card-hover bg-white border border-gray-200 rounded-2xl p-7 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-2xl mb-4">✅</div>
+        <h3 class="text-lg font-bold mb-2">待办 · 琐事 · 一切</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">
+          WiFi 密码、物业电话、快递单号、孩子课程表——<br>
+          <strong>告诉它一次，以后随时问。</strong><br>
+          <span class="text-xs text-gray-400 mt-2 inline-block">💬 聊天方式录入和查询</span>
+        </p>
+      </div>
+
+      <div class="card-hover bg-white border border-gray-200 rounded-2xl p-7 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-2xl mb-4">🧠</div>
+        <h3 class="text-lg font-bold mb-2">AI 自带脑子</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">
+          支持 <strong>DeepSeek · Qwen · OpenAI</strong> 等任意兼容 API。<br>
+          你选模型、你控成本，一键测试连接。<br>
+          <span class="text-xs text-gray-400 mt-2 inline-block">🔑 用户自备 API Key · 直连模型厂商</span>
+        </p>
+      </div>
+
+      <div class="card-hover bg-white border border-gray-200 rounded-2xl p-7 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-2xl mb-4">💬</div>
+        <h3 class="text-lg font-bold mb-2">聊天即交互</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">
+          不用学命令、不用装 App。<br>
+          绑定账号后，<strong>发消息就能问、能查、能录入</strong>。<br>
+          <span class="text-xs text-gray-400 mt-2 inline-block">📱 桌面端 + 绑定通道双入口</span>
+        </p>
+      </div>
+
+      <div class="card-hover bg-white border border-gray-200 rounded-2xl p-7 fade-up">
+        <div class="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-2xl mb-4">🏠</div>
+        <h3 class="text-lg font-bold mb-2">NAS · 旧电脑 · 本机</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">
+          装在群晖 / 威联通 NAS 上天然 24 小时在线；装在旧电脑上设开机自启也行。<strong>全家远程访问</strong>。<br>
+          <span class="text-xs text-gray-400 mt-2 inline-block">🌐 局域网 + 远程 · Tauri 2 低资源占用</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-4xl mx-auto"></div>
+
+<!-- LOCAL-FIRST DEEP DIVE -->
+<section id="local" class="py-24 px-6 bg-gray-50/50">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16 fade-up">
+      <p class="text-brand-600 font-semibold text-sm tracking-wide uppercase mb-3">本地化架构</p>
+      <h2 class="text-3xl md:text-4xl font-extrabold mb-4">你的电脑就是服务器</h2>
+      <p class="text-gray-500 max-w-2xl mx-auto">没有云、没有注册、没有月费。所有数据、所有计算，都在你自己的机器上完成。</p>
+    </div>
+
+    <!-- Architecture diagram -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-8 mb-12 fade-up">
+      <div class="grid md:grid-cols-5 gap-4 items-center text-center">
+        <div class="bg-blue-50 rounded-xl p-4">
+          <div class="text-2xl mb-2">👤</div>
+          <div class="text-xs font-bold text-gray-700">家庭成员</div>
+          <div class="text-xs text-gray-400 mt-1">绑定账号</div>
+        </div>
+        <div class="text-2xl text-gray-300">→</div>
+        <div class="bg-brand-50 rounded-xl p-4 border-2 border-brand-200">
+          <div class="text-2xl mb-2">✨</div>
+          <div class="text-xs font-bold text-brand-700">拾忆</div>
+          <div class="text-xs text-gray-400 mt-1">你电脑上的应用</div>
+        </div>
+        <div class="text-2xl text-gray-300">→</div>
+        <div class="bg-emerald-50 rounded-xl p-4">
+          <div class="text-2xl mb-2">🧠</div>
+          <div class="text-xs font-bold text-gray-700">AI 模型 API</div>
+          <div class="text-xs text-gray-400 mt-1">你的 Key · 直连</div>
+        </div>
+      </div>
+      <div class="mt-6 grid md:grid-cols-4 gap-3">
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <div class="text-sm font-mono text-gray-600">💾 SQLite</div>
+          <div class="text-xs text-gray-400 mt-1">本地数据库</div>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <div class="text-sm font-mono text-gray-600">📂 文件索引</div>
+          <div class="text-xs text-gray-400 mt-1">本地目录扫描</div>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <div class="text-sm font-mono text-gray-600">🔍 Tesseract.js</div>
+          <div class="text-xs text-gray-400 mt-1">本地 OCR 识别</div>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <div class="text-sm font-mono text-gray-600">🚀 Tauri 2</div>
+          <div class="text-xs text-gray-400 mt-1">轻量桌面壳</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Local detail cards -->
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 fade-up">
+        <div class="text-2xl mb-3">💾</div>
+        <h3 class="font-bold mb-2">SQLite 本地数据库</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">
+          所有数据存在你电脑上的 SQLite 文件。<strong>没有云端数据库，没有数据泄露风险。</strong>数据目录可自定义，备份就是复制一个文件。
+        </p>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 fade-up">
+        <div class="text-2xl mb-3">🔍</div>
+        <h3 class="font-bold mb-2">本地 OCR · 不经过云端</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">
+          图片文字识别使用 <strong>Tesseract.js</strong>，完全在浏览器端运行。发票、证件、作业照片——识别结果不出你的电脑。
+        </p>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 fade-up">
+        <div class="text-2xl mb-3">🔑</div>
+        <h3 class="font-bold mb-2">你的 Key · 直连模型厂商</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">
+          API Key 只存在本地配置文件。<strong>请求直接发给 DeepSeek / Qwen / OpenAI</strong>，我们不经手、不中转、不抽成。
+        </p>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 fade-up">
+        <div class="text-2xl mb-3">🚀</div>
+        <h3 class="font-bold mb-2">Tauri 2 · 比 Electron 更轻</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">
+          基于 Rust + WebView 构建，<strong>安装包小、内存占用低</strong>。旧电脑、迷你主机也能 24 小时跑。
+        </p>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 fade-up">
+        <div class="text-2xl mb-3">🔄</div>
+        <h3 class="font-bold mb-2">开机自启 · 无人值守</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">
+          内置 autostart 插件，<strong>开机自动运行</strong>。装在 NAS 或旧电脑上，设好就不用管，全家随时访问。
+        </p>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 fade-up">
+        <div class="text-2xl mb-3">🌐</div>
+        <h3 class="font-bold mb-2">本地 API · 可扩展</h3>
+        <p class="text-sm text-gray-500 leading-relaxed">
+          后端跑在 <code class="text-xs bg-gray-100 px-1 rounded">localhost:3099</code>，暴露 REST API。<strong>局域网内任何设备都能访问</strong>，未来可对接更多工具。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-4xl mx-auto"></div>
+
+<!-- SCENARIOS -->
+<section id="scenarios" class="py-24 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16 fade-up">
+      <p class="text-brand-600 font-semibold text-sm tracking-wide uppercase mb-3">真实场景</p>
+      <h2 class="text-3xl md:text-4xl font-extrabold mb-4">谁在用？用来干什么？</h2>
+      <p class="text-gray-500">家庭、合租、小团队——任何需要共享信息的小集体。</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+
+      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden card-hover fade-up">
+        <div class="bg-gradient-to-br from-rose-50 to-pink-50 p-6">
+          <div class="bg-white rounded-xl p-4 shadow-sm space-y-3">
+            <div class="flex gap-2 items-start">
+              <div class="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center text-xs">你</div>
+              <div class="bubble-user px-3 py-1.5 text-xs">去年的租房合同 PDF 在哪？</div>
+            </div>
+            <div class="flex gap-2 items-start flex-row-reverse">
+              <div class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center text-xs">✨</div>
+              <div class="bubble-agent px-3 py-1.5 text-xs shadow-sm border border-gray-100">
+                📄 找到了<br>/文档/合同/2025租房.pdf<br>✅ 永久保存，不会过期
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="p-6">
+          <h3 class="font-bold mb-2">📄 文件永久在手</h3>
+          <p class="text-sm text-gray-500">告别微信文件助手的 7 天过期。文件存在你电脑上，<strong>一辈子都在</strong>。</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden card-hover fade-up">
+        <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-6">
+          <div class="bg-white rounded-xl p-4 shadow-sm space-y-3">
+            <div class="flex gap-2 items-start">
+              <div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center text-xs">妈</div>
+              <div class="bubble-user px-3 py-1.5 text-xs">明天谁有课？</div>
+            </div>
+            <div class="flex gap-2 items-start flex-row-reverse">
+              <div class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center text-xs">✨</div>
+              <div class="bubble-agent px-3 py-1.5 text-xs shadow-sm border border-gray-100">
+                📅 小明 15:00 钢琴<br>📅 小红 16:30 画画
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="p-6">
+          <h3 class="font-bold mb-2">🏠 家庭日程</h3>
+          <p class="text-sm text-gray-500">孩子的课程、大人的会议——全家人的待办一问就知道。</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden card-hover fade-up">
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
+          <div class="bg-white rounded-xl p-4 shadow-sm space-y-3">
+            <div class="flex gap-2 items-start">
+              <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs">新</div>
+              <div class="bubble-user px-3 py-1.5 text-xs">打印机怎么连？</div>
+            </div>
+            <div class="flex gap-2 items-start flex-row-reverse">
+              <div class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center text-xs">✨</div>
+              <div class="bubble-agent px-3 py-1.5 text-xs shadow-sm border border-gray-100">
+                🖨️ HP LaserJet<br>IP: 192.168.1.108<br>密码: office2026
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="p-6">
+          <h3 class="font-bold mb-2">🏢 小团队共享</h3>
+          <p class="text-sm text-gray-500">WiFi 密码、打印机地址、常用文档——新人问它就行，不用到处找人。</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="quickstart" class="py-24 px-6 bg-gray-50/50">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16 fade-up">
+      <p class="text-brand-600 font-semibold text-sm tracking-wide uppercase mb-3">上手方式</p>
+      <h2 class="text-3xl md:text-4xl font-extrabold">三种姿势，三分钟搞定</h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white border border-gray-200 rounded-2xl p-7 fade-up">
+        <div class="text-2xl mb-4">🖥️</div>
+        <h3 class="font-bold text-lg mb-3">本机使用</h3>
+        <p class="text-sm text-gray-500 mb-4">装在自己常用的电脑上，自己用。</p>
+        <div class="space-y-3 text-sm text-gray-600">
+          <div class="flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+            <span>下载安装 macOS / Windows</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+            <span>填入 API Key，测试连接</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+            <span>添加成员，开始使用</span>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gradient-to-br from-brand-50 to-emerald-50 border border-brand-200 rounded-2xl p-7 fade-up">
+        <div class="text-2xl mb-4">🏠</div>
+        <h3 class="font-bold text-lg mb-3">NAS 部署</h3>
+        <p class="text-sm text-gray-500 mb-4">装在群晖 / 威联通等 NAS 上，<strong>天然 24 小时在线</strong>。</p>
+        <div class="space-y-3 text-sm text-gray-600">
+          <div class="flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-white text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+            <span>NAS 上安装，设置开机自启</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-white text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+            <span>扫描 NAS 文件目录，全家文件即知识库</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-white text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+            <span>家人绑定账号，手机随时问</span>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-4">💡 NAS 上的文件天然共享，省去额外扫描</p>
+      </div>
+      <div class="bg-white border border-gray-200 rounded-2xl p-7 fade-up">
+        <div class="text-2xl mb-4">💻</div>
+        <h3 class="font-bold text-lg mb-3">旧电脑部署</h3>
+        <p class="text-sm text-gray-500 mb-4">装在闲置旧电脑或迷你主机上，<strong>全家远程访问</strong>。</p>
+        <div class="space-y-3 text-sm text-gray-600">
+          <div class="flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+            <span>旧电脑上安装，设置开机自启</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+            <span>配置 AI + 扫描文件目录</span>
+          </div>
+          <div class="flex items-start gap-3">
+            <span class="w-6 h-6 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+            <span>家人绑定账号，手机随时问</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-4xl mx-auto"></div>
+
+<!-- USE CASES -->
+<section class="py-24 px-6">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16 fade-up">
+      <p class="text-brand-600 font-semibold text-sm tracking-wide uppercase mb-3">适用场景</p>
+      <h2 class="text-3xl md:text-4xl font-extrabold">不只是"家庭"</h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 fade-up">
+        <div class="text-3xl mb-4">🏠</div>
+        <h3 class="font-bold text-lg mb-3">家庭</h3>
+        <ul class="text-sm text-gray-500 space-y-2">
+          <li>• 孩子课程表、作业提醒</li>
+          <li>• 家庭证件、保单、合同存档</li>
+          <li>• WiFi 密码、物业电话随手查</li>
+          <li>• 家庭采购清单、待办共享</li>
+        </ul>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 fade-up">
+        <div class="text-3xl mb-4">👫</div>
+        <h3 class="font-bold text-lg mb-3">合租 / 室友</h3>
+        <ul class="text-sm text-gray-500 space-y-2">
+          <li>• AA 记账、水电费分摊</li>
+          <li>• 快递代收、钥匙位置</li>
+          <li>• 公共物品清单</li>
+          <li>• 房东联系方式、合同到期提醒</li>
+        </ul>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-6 fade-up">
+        <div class="text-3xl mb-4">🏢</div>
+        <h3 class="font-bold text-lg mb-3">小团队</h3>
+        <ul class="text-sm text-gray-500 space-y-2">
+          <li>• 新人入职知识库</li>
+          <li>• 共享账号、服务器信息</li>
+          <li>• 常用文档、流程 SOP</li>
+          <li>• 会议室预约、设备借用</li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-8 text-center fade-up">
+      <div class="inline-flex items-center gap-3 bg-white border border-gray-200 rounded-full px-6 py-3 text-sm text-gray-600">
+        <span class="text-lg">💡</span>
+        <span><strong>Tip：</strong>装在旧电脑上，设置开机自启，全家远程访问——它就是你家的私有 AI 服务器。</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="py-24 px-6 bg-gray-50/50">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16 fade-up">
+      <p class="text-brand-600 font-semibold text-sm tracking-wide uppercase mb-3">定价</p>
+      <h2 class="text-3xl md:text-4xl font-extrabold mb-4">现在免费，未来明示</h2>
+      <p class="text-gray-500">v0.1 公测期所有功能完全免费。</p>
+    </div>
+    <div class="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+      <div class="bg-white rounded-2xl border-2 border-brand-500 p-8 relative fade-up">
+        <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-brand-500 text-white text-xs font-bold px-4 py-1 rounded-full">当前可用</div>
+        <h3 class="text-xl font-bold mb-1">公测版</h3>
+        <p class="text-sm text-gray-400 mb-6">v0.1</p>
+        <div class="text-4xl font-black mb-6">¥0 <span class="text-base font-normal text-gray-400">/ 永久</span></div>
+        <ul class="space-y-3 text-sm text-gray-600 mb-8">
+          <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span> 多成员管理 · 角色权限</li>
+          <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span> AI 对话 · 聊天查询</li>
+          <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span> 文件扫描 · 本地 OCR</li>
+          <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span> 待办管理 · 信息录入</li>
+          <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span> 自备 API Key · 直连模型</li>
+          <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5">✓</span> SQLite 本地存储 · 数据导出</li>
+        </ul>
+        <a href="#download" class="block text-center bg-brand-500 text-white font-semibold py-3 rounded-xl hover:bg-brand-600 transition">立即下载</a>
+      </div>
+      <div class="bg-white rounded-2xl border border-gray-200 p-8 opacity-70 fade-up">
+        <h3 class="text-xl font-bold mb-1">Pro 版</h3>
+        <p class="text-sm text-gray-400 mb-6">规划中</p>
+        <div class="text-4xl font-black mb-6 text-gray-300">? <span class="text-base font-normal">/ 年</span></div>
+        <ul class="space-y-3 text-sm text-gray-400 mb-8">
+          <li class="flex items-start gap-2"><span class="mt-0.5">+</span> 云同步 · 多设备</li>
+          <li class="flex items-start gap-2"><span class="mt-0.5">+</span> 托管 AI 配额</li>
+          <li class="flex items-start gap-2"><span class="mt-0.5">+</span> 更多绑定通道</li>
+          <li class="flex items-start gap-2"><span class="mt-0.5">+</span> 团队协作增强</li>
+          <li class="flex items-start gap-2"><span class="mt-0.5">+</span> 高级导出格式</li>
+        </ul>
+        <button disabled class="block w-full text-center border border-gray-300 text-gray-400 font-semibold py-3 rounded-xl cursor-not-allowed">即将推出</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider max-w-4xl mx-auto"></div>
+
+<!-- PROMISES -->
+<section class="py-24 px-6">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16 fade-up">
+      <h2 class="text-3xl md:text-4xl font-extrabold">我们的承诺</h2>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="text-center fade-up">
+        <div class="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center text-2xl mx-auto mb-4">🏠</div>
+        <h4 class="font-bold mb-1">数据在本地</h4>
+        <p class="text-xs text-gray-500">SQLite 本地数据库，永远不上传。</p>
+      </div>
+      <div class="text-center fade-up">
+        <div class="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-2xl mx-auto mb-4">🔑</div>
+        <h4 class="font-bold mb-1">你的 Key 你的钱</h4>
+        <p class="text-xs text-gray-500">API Key 只存本地，直连模型厂商。</p>
+      </div>
+      <div class="text-center fade-up">
+        <div class="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center text-2xl mx-auto mb-4">📖</div>
+        <h4 class="font-bold mb-1">开源透明</h4>
+        <p class="text-xs text-gray-500">代码公开在 GitHub，欢迎审计。</p>
+      </div>
+      <div class="text-center fade-up">
+        <div class="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center text-2xl mx-auto mb-4">🚫</div>
+        <h4 class="font-bold mb-1">无广告无追踪</h4>
+        <p class="text-xs text-gray-500">不埋点、不收集、不卖数据。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="py-24 px-6 bg-gray-50/50">
+  <div class="max-w-3xl mx-auto">
+    <div class="text-center mb-16 fade-up">
+      <p class="text-brand-600 font-semibold text-sm tracking-wide uppercase mb-3">常见问题</p>
+      <h2 class="text-3xl md:text-4xl font-extrabold">还有疑问？</h2>
+    </div>
+    <div class="space-y-4">
+      <details class="group bg-white border border-gray-200 rounded-xl overflow-hidden fade-up">
+        <summary class="flex items-center justify-between px-6 py-4 cursor-pointer font-semibold text-sm hover:bg-gray-50 transition">
+          和微信文件助手有什么区别？
+          <span class="text-gray-400 group-open:rotate-45 transition-transform text-lg">+</span>
+        </summary>
+        <div class="px-6 pb-4 text-sm text-gray-600 leading-relaxed">
+          微信文件助手 <strong>7 天过期</strong>，文件存手机上占空间，找起来还得翻聊天记录。拾忆的文件<strong>存在你自己电脑上，永久不过期</strong>，还能用自然语言搜索、OCR 识别图片内容。
+        </div>
+      </details>
+      <details class="group bg-white border border-gray-200 rounded-xl overflow-hidden fade-up">
+        <summary class="flex items-center justify-between px-6 py-4 cursor-pointer font-semibold text-sm hover:bg-gray-50 transition">
+          和 Siri / 小爱同学有什么区别？
+          <span class="text-gray-400 group-open:rotate-45 transition-transform text-lg">+</span>
+        </summary>
+        <div class="px-6 pb-4 text-sm text-gray-600 leading-relaxed">
+          Siri / 小爱是语音助手，只能回答简单问题。拾忆<strong>能管文件、管待办、记琐事</strong>，支持本地 OCR 识图、文件搜索，多人共享同一个知识库。数据不离开你的电脑。
+        </div>
+      </details>
+      <details class="group bg-white border border-gray-200 rounded-xl overflow-hidden fade-up">
+        <summary class="flex items-center justify-between px-6 py-4 cursor-pointer font-semibold text-sm hover:bg-gray-50 transition">
+          支持哪些 AI 模型？
+          <span class="text-gray-400 group-open:rotate-45 transition-transform text-lg">+</span>
+        </summary>
+        <div class="px-6 pb-4 text-sm text-gray-600 leading-relaxed">
+          任何 <strong>OpenAI 兼容 API</strong> 都支持。包括 DeepSeek、Qwen (通义千问)、OpenAI、智谱、Moonshot 等。你也可以用本地模型（如 Ollama），只要它暴露兼容接口。API Key 只存本地，请求直连模型厂商。
+        </div>
+      </details>
+      <details class="group bg-white border border-gray-200 rounded-xl overflow-hidden fade-up">
+        <summary class="flex items-center justify-between px-6 py-4 cursor-pointer font-semibold text-sm hover:bg-gray-50 transition">
+          数据安全吗？别人能看到我的文件吗？
+          <span class="text-gray-400 group-open:rotate-45 transition-transform text-lg">+</span>
+        </summary>
+        <div class="px-6 pb-4 text-sm text-gray-600 leading-relaxed">
+          所有数据存在你电脑本地的 <strong>SQLite</strong> 数据库，OCR 识别也在本地完成。API Key 只存本地配置文件。共享成员通过角色权限控制访问范围。
+        </div>
+      </details>
+      <details class="group bg-white border border-gray-200 rounded-xl overflow-hidden fade-up">
+        <summary class="flex items-center justify-between px-6 py-4 cursor-pointer font-semibold text-sm hover:bg-gray-50 transition">
+          可以部署在 NAS 或旧电脑上吗？
+          <span class="text-gray-400 group-open:rotate-45 transition-transform text-lg">+</span>
+        </summary>
+        <div class="px-6 pb-4 text-sm text-gray-600 leading-relaxed">
+          可以。装在群晖 / 威联通等 NAS 上<strong>天然 24 小时在线</strong>，NAS 上的文件直接就是知识库。也可以装在闲置旧电脑或迷你主机上，设置<strong>开机自启</strong>。基于 Tauri 2 构建，资源占用很低。局域网内任何设备都能访问。
+        </div>
+      </details>
+      <details class="group bg-white border border-gray-200 rounded-xl overflow-hidden fade-up">
+        <summary class="flex items-center justify-between px-6 py-4 cursor-pointer font-semibold text-sm hover:bg-gray-50 transition">
+          支持哪些系统？
+          <span class="text-gray-400 group-open:rotate-45 transition-transform text-lg">+</span>
+        </summary>
+        <div class="px-6 pb-4 text-sm text-gray-600 leading-relaxed">
+          macOS (Apple Silicon M1–M4 + Intel) 和 Windows 10/11。基于 <strong>Tauri 2</strong> (Rust + WebView) 构建，比 Electron 更轻量，安装包更小，内存占用更低。
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="py-20 px-6">
+  <div class="max-w-3xl mx-auto text-center fade-up">
+    <div class="bg-gradient-to-br from-brand-500 to-brand-700 rounded-3xl p-12 text-white">
+      <h2 class="text-3xl md:text-4xl font-extrabold mb-4">让你的小集体也有一个 AI</h2>
+      <p class="text-brand-100 mb-8 max-w-md mx-auto">下载安装，三分钟上手。<br>免费、本地、不折腾。</p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <a href="#download" class="inline-flex items-center gap-2 bg-white text-brand-700 font-semibold px-7 py-3 rounded-xl hover:bg-brand-50 transition text-sm">
+          下载拾忆
+        </a>
+        <a href="#" class="inline-flex items-center gap-2 border border-white/30 text-white font-semibold px-7 py-3 rounded-xl hover:bg-white/10 transition text-sm">
+          查看文档
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="border-t border-gray-200 py-12 px-6">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center gap-2.5 font-bold text-gray-700">
+      <span class="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center text-xs">✨</span>
+      拾忆
+    </div>
+    <div class="flex items-center gap-6 text-sm text-gray-500">
+      <a href="#" class="hover:text-gray-700 transition">GitHub</a>
+      <a href="#" class="hover:text-gray-700 transition">文档</a>
+      <a href="#" class="hover:text-gray-700 transition">反馈</a>
+      <a href="#" class="hover:text-gray-700 transition">联系我们</a>
+    </div>
+    <p class="text-xs text-gray-400">© 2026 拾忆 · 本地运行，数据归你</p>
+  </div>
+</footer>
+
+<script>
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }});
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
