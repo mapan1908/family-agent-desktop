@@ -1,19 +1,15 @@
 import { useState, useEffect } from 'react'
 import { api } from '../lib/api'
-import { openPath } from '@tauri-apps/plugin-opener'
+import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { Card, TextInput, NumberInput, Button, Group, Stack, Text, Box } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 
 async function openInExplorer(dirPath: string) {
   try {
-    await openPath(dirPath)
-  } catch {
-    try {
-      await navigator.clipboard.writeText(dirPath)
-      notifications.show({ message: '路径已复制到剪贴板', color: 'blue' })
-    } catch {
-      notifications.show({ message: dirPath, color: 'blue' })
-    }
+    await revealItemInDir(dirPath)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : '打开失败'
+    notifications.show({ message: msg, color: 'red' })
   }
 }
 
