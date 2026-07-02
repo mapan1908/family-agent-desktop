@@ -2,6 +2,7 @@
  * API: 系统配置
  */
 import { Router } from 'express';
+import { paths } from './paths.js';
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,12 +32,15 @@ export function router(db) {
     config.imageAi = config.imageAi || process.env.IMAGE_AI || 'off';
     config.scanPaths = config.scanPaths || process.env.SCAN_PATHS || '';
     config.port = config.port || process.env.FAMILY_PORT || '3099';
+
+    // 返回绝对路径（数据库里可能是相对路径）
+    config.dataDir = paths.dataDir;
     res.json(config);
   });
 
   // 保存配置
   r.post('/', (req, res) => {
-    const fields = ['llmApiKey', 'llmBaseUrl', 'llmModel', 'dataDir', 'imageAi', 'scanPaths', 'port'];
+    const fields = ['llmApiKey', 'llmBaseUrl', 'llmModel', 'imageAi', 'scanPaths', 'port'];
     for (const key of fields) {
       if (req.body[key] !== undefined) {
         db.exec('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)', [key, req.body[key]]);
