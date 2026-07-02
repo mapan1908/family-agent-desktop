@@ -1,2 +1,55 @@
 @import '@mantine/core/styles.css';
 @import '@mantine/notifications/styles.css';
+
+/* 全局平滑滚动 + 防抖动 */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
+/* 拖拽时防止抖动 */
+[data-mantine-scroll-area] {
+  will-change: scroll-position;
+}
+
+/* 固定布局防止 reflow */
+.mantine-AppShell-root {
+  overflow: hidden;
+}
+
+.mantine-AppShell-main {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mantine-AppShell-navbar {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--mantine-color-dimmed);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--mantine-color-gray-5);
+}
