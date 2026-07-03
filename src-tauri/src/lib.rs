@@ -6,8 +6,18 @@ use tauri::{
 };
 use tauri_plugin_autostart::MacosLauncher;
 
+use std::path::PathBuf;
+
 struct NodeProcess {
     child: Option<u32>, // PID
+}
+
+/// 跨平台杀进程（Windows 用 taskkill，Unix 用 kill）
+fn kill_pid(pid: u32) {
+    #[cfg(windows)]
+    { let _ = std::process::Command::new("taskkill").args(["/PID", &pid.to_string(), "/F", "/T"]).status(); }
+    #[cfg(unix)]
+    { let _ = std::process::Command::new("kill").arg(pid.to_string()).status(); }
 }
 
 #[tauri::command]
@@ -90,17 +100,21 @@ fn start_node_backend<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<(), Strin
 
     // In dev mode, point to ~/family-agent-desktop where index.js lives; in production, use resource dir
     let (workdir, node_bin, script) = if cfg!(debug_assertions) {
-        let home = std::env::var("HOME").expect("HOME environment variable not set");
-        let project_root = format!("{}/family-agent-desktop", home);
+        // HOME 在 Windows 上不存在，fallback 到 USERPROFILE
+        let home = std::env::var("HOME")
+            .or_else(|_| std::env::var("USERPROFILE"))
+            .expect("HOME/USERPROFILE not set");
+        let project_root = PathBuf::from(&home).join("family-agent-desktop");
         (
-            project_root,
+            project_root.to_string_lossy().to_string(),
             "node".to_string(),
             "index.js".to_string(),
         )
     } else {
+        let node_bin = PathBuf::from(&app_dir).join("node-backend");
         (
             app_dir.clone(),
-            format!("{}/node-backend", app_dir),
+            node_bin.to_string_lossy().to_string(),
             "index.js".to_string(),
         )
     };
@@ -140,11 +154,7 @@ fn restart_node_backend<R: Runtime>(app: tauri::AppHandle<R>) -> Result<String, 
     if let Some(state) = app.try_state::<Mutex<NodeProcess>>() {
         if let Ok(mut proc) = state.lock() {
             if let Some(pid) = proc.child.take() {
-                #[cfg(unix)]
-                {
-                    use std::process::Command;
-                    let _ = Command::new("kill").arg(pid.to_string()).status();
-                }
+                kill_pid(pid);
                 log::info!("Killed old Node.js process PID: {}", pid);
             }
         }
@@ -267,8 +277,7 @@ pub fn run() {
                         if let Some(state) = app.try_state::<std::sync::Mutex<NodeProcess>>() {
                             if let Ok(mut proc) = state.lock() {
                                 if let Some(pid) = proc.child.take() {
-                                    #[cfg(unix)]
-                                    { let _ = std::process::Command::new("kill").arg(pid.to_string()).status(); }
+                                    kill_pid(pid);
                                     log::info!("Stopped Node.js process PID: {}", pid);
                                 }
                             }

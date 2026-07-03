@@ -22,8 +22,11 @@ import fs from 'node:fs';
 
 /** 开发模式检测：npm run dev / node --watch / dotenv 找不到时 */
 function isDevMode() {
+  // 1. Tauri 开发模式显式设置 NODE_ENV=development
   if (process.env.NODE_ENV === 'development') return true;
-  // 简单启发：项目根有 package.json，且 process.cwd() 启动
+  // 2. 生产模式显式设置 → 直接判定非开发
+  if (process.env.NODE_ENV === 'production') return false;
+  // 3. 兜底：项目根有 package.json（node index.js 直接启动）
   try {
     if (fs.existsSync(path.join(process.cwd(), 'package.json'))) return true;
   } catch {}

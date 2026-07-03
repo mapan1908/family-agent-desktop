@@ -98,9 +98,21 @@ export function AppShellLayout() {
   const [page, setPage] = useState<Page>('dashboard')
   const { colorScheme, toggleColorScheme } = useMantineColorScheme()
   const [expanded, { toggle: toggleExpanded }] = useDisclosure(true)
+  const [upgradeInfo, setUpgradeInfo] = useState<{ hasUpdate: boolean; latest: string | null; downloadUrl: string | null } | null>(null)
+  const [checking, setChecking] = useState(false)
 
   const meta = PAGE_META[page]
   const navWidth = expanded ? NAVBAR_EXPANDED : NAVBAR_COLLAPSED
+
+  const checkUpdate = async () => {
+    setChecking(true)
+    try {
+      const res = await fetch('http://localhost:3099/api/upgrade/check')
+      const info = await res.json()
+      setUpgradeInfo(info)
+    } catch { /* ignore */ }
+    setChecking(false)
+  }
 
   return (
     <AppShell
@@ -195,17 +207,73 @@ export function AppShellLayout() {
           ))}
         </AppShell.Section>
 
-        {/* Bottom bar */}
-        <Group justify={expanded ? 'space-between' : 'center'} px={expanded ? 'md' : 8} py="sm"
+        {/* Bottom bar: version + upgrade + theme */}
+        <Box px={expanded ? 'md' : 8} py="sm"
           style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
         >
-          {expanded && <Text size="xs" c="dimmed">family-agent</Text>}
-          <Tooltip label={colorScheme === 'dark' ? '亮色模式' : '暗色模式'} position="right">
-            <ActionIcon variant="subtle" color="gray" size="sm" onClick={toggleColorScheme}>
-              {colorScheme === 'dark' ? <SunIcon /> : <MoonIcon />}
-            </ActionIcon>
-          </Tooltip>
-        </Group>
+          {expanded ? (
+            <Stack gap={6}>
+              <Group justify="space-between" align="center">
+                <Group gap={4} align="center">
+                  <Text size="xs" c="dimmed">v0.1.0</Text>
+                  {upgradeInfo?.hasUpdate && (
+                    <Badge size="xs" color="orange" variant="light">新版本</Badge>
+                  )}
+                </Group>
+                <Group gap={4}>
+                  <Tooltip label="检查更新" position="top">
+                    <ActionIcon
+                      variant="subtle"
+                      color={upgradeInfo?.hasUpdate ? 'orange' : 'gray'}
+                      size="sm"
+                      onClick={checkUpdate}
+                      loading={checking}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 2v4l3 3" /><path d="M2 8a6 6 0 1 1 12 0A6 6 0 0 1 2 8z" /></svg>
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label={colorScheme === 'dark' ? '亮色模式' : '暗色模式'} position="top">
+                    <ActionIcon variant="subtle" color="gray" size="sm" onClick={toggleColorScheme}>
+                      {colorScheme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                    </ActionIcon>
+                  </Tooltip>
+                </Group>
+              </Group>
+              {upgradeInfo?.hasUpdate && upgradeInfo.downloadUrl && (
+                <Button
+                  size="xs"
+                  variant="light"
+                  color="orange"
+                  fullWidth
+                  component="a"
+                  href={upgradeInfo.downloadUrl}
+                  target="_blank"
+                >
+                  下载 v{upgradeInfo.latest}
+                </Button>
+              )}
+            </Stack>
+          ) : (
+            <Stack gap={4} align="center">
+              <Tooltip label="检查更新" position="right">
+                <ActionIcon
+                  variant="subtle"
+                  color={upgradeInfo?.hasUpdate ? 'orange' : 'gray'}
+                  size="sm"
+                  onClick={checkUpdate}
+                  loading={checking}
+                >
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 2v4l3 3" /><path d="M2 8a6 6 0 1 1 12 0A6 6 0 0 1 2 8z" /></svg>
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label={colorScheme === 'dark' ? '亮色模式' : '暗色模式'} position="right">
+                <ActionIcon variant="subtle" color="gray" size="sm" onClick={toggleColorScheme}>
+                  {colorScheme === 'dark' ? <SunIcon /> : <MoonIcon />}
+                </ActionIcon>
+              </Tooltip>
+            </Stack>
+          )}
+        </Box>
       </AppShell.Navbar>
 
       <AppShell.Main display="flex" style={{ flexDirection: 'column', overflow: 'hidden' }}>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../lib/api'
-import { Card, SimpleGrid, Title, Text, Badge, Table, Group, Stack, Box, Paper, ThemeIcon } from '@mantine/core'
+import { Card, SimpleGrid, Text, Badge, Table, Group, Stack, Box, Paper, ThemeIcon } from '@mantine/core'
+
 interface Stats {
   fileCount: number; todoCount: number; memberCount: number; messageCount: number
   llmConfigured: boolean; appVersion: string
@@ -44,16 +45,16 @@ export function DashboardPage() {
     <Box p="md">
       <Stack gap="md">
         <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="md">
-          {statItems.map((s) => (
-            <Card key={s.label} withBorder radius="md" p="md">
+          {statItems.map((item) => (
+            <Card key={item.label} withBorder radius="md" p="md">
               <Group justify="space-between" mb="xs">
-                <ThemeIcon variant="light" color={s.color} size="lg" radius="md">
-                  {s.icon}
+                <Text size="xs" c="dimmed" tt="uppercase" fw={600}>{item.label}</Text>
+                <ThemeIcon variant="light" color={item.color} size="sm" radius="md">
+                  {item.icon}
                 </ThemeIcon>
               </Group>
-              <Title order={2} fw={700}>{s.value}</Title>
-              <Text size="sm" fw={500}>{s.label}</Text>
-              <Text size="xs" c="dimmed">{s.sub}</Text>
+              <Text size="xl" fw={700} lh={1.2}>{item.value}</Text>
+              <Text size="xs" c="dimmed" mt={2}>{item.sub}</Text>
             </Card>
           ))}
         </SimpleGrid>

@@ -204,8 +204,7 @@ app.get('/api/scan/stream', async (req, res) => {
       send('done', { ok: true, message: '未配置扫描路径', total: 0, inserted: 0, skipped: 0, removed: 0 });
       return res.end();
     }
-    const dataDirRow = db.get("SELECT value FROM config WHERE key='dataDir'");
-    const dataDir = dataDirRow?.value || './data';
+    const dataDir = paths.dataDir;
 
     let total = 0, inserted = 0, skipped = 0;
     const errors = [];
@@ -249,8 +248,7 @@ app.post('/api/scan', async (_req, res) => {
     const rawPaths = row?.value || paths.scanPaths.join(',') || '';
     const scanPaths = rawPaths.split(',').map(s => s.trim()).filter(Boolean);
     if (scanPaths.length === 0) return res.json({ ok: true, message: '未配置扫描路径', total: 0, inserted: 0, skipped: 0 });
-    const dataDirRow = db.get("SELECT value FROM config WHERE key='dataDir'");
-    const dataDir = dataDirRow?.value || './data';
+    const dataDir = paths.dataDir;
     let total = 0, inserted = 0, skipped = 0;
     const errors = [];
     for (const dir of scanPaths) {

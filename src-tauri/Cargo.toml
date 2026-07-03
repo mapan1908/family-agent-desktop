@@ -1,6 +1,6 @@
 [package]
 name = "family-agent"
-version = "0.1.0"
+version = "0.1.1"
 description = "家庭 Agent — 微信里的家庭管家"
 authors = ["you"]
 license = ""
